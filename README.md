@@ -3,6 +3,12 @@
 An script to install IntelliJ Idea Community Edition in based DEB Linux OS.
 
 
+## Features
+
+- Automatic installation of latest IntelliJ Idea Community Edition.
+- Configuration menu to manipulate some aspects of IntelliJ Idea Community Edition.
+
+
 ## Supported installations
 
 List of supported installation setups for IntelliJ and Options Menu (installations supported by this installation script).
@@ -11,11 +17,6 @@ List of supported installation setups for IntelliJ and Options Menu (installatio
 | :---             | :---:   |     :---:     |       :---:        |
 | Ubuntu           | 23.04   |      ✅      |         ✅         |
 | Lubuntu          | 22.04   |      ✅      |         🔴         |
-
-## Features
-
-- Automatic installation of latest IntelliJ Idea Community Edition.
-- Configuration menu to manipulate some aspects of IntelliJ Idea Community Edition.
 
 
 ## Using the installation script
