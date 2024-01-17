@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>IntelliJ-Idea-CM-Installer</title>
+        <style>
+            body {
+                background-color: #121212;
+                color: #ffffff;
+            }
+
+            #code {
+                color: #ffffff;
+            }
+        </style>
+    </head>
+    <body>
+        <pre id="code">
+#!/bin/bash
+
+addProgramShortcutToDesktop() {
+  echo -e "\nINFO: Adding IntelliJ Idea Community to desktop browser..."
+  read -rp "Do you recently have install IntelliJ Idea Community with this script? [Y/n] " opt
+
+  while [ "$opt" != "" ] && [ "$opt" != "Y" ] && [ "$opt" != "y" ] && [ "$opt" != "N" ] && [ "$opt" != "n" ]; do
+    read -rp "Do you recently have install IntelliJ Idea Community with this script? [Y/n] " opt
+  done
+
+  case $opt in
+        "" | "Y" | "y")
+            echo -e "\nINFO: Continuing adding IntelliJ Idea Community to desktop browser..."
+            ADD_DESKTOP_BROWSER_SHORTCUT=true
+            ;;
+        "N" | "n")
+            echo -e "\nWARN: You must not use this script to add this feature because a possible version mismatch!"
+            read -rp "Do you want to continue? [Y/n] " opt
+
+            while [ "$opt" != "" ] && [ "$opt" != "Y" ] && [ "$opt" != "y" ] && [ "$opt" != "N" ] && [ "$opt" != "n" ]; do
+              read -rp "Do you want to continue? [Y/n] " opt
+            done
+
+            case $opt in
+              "" | "Y" | "y")
+                echo -e "\nINFO: Continuing adding IntelliJ Idea Community to desktop browser..."
+                ADD_DESKTOP_BROWSER_SHORTCUT=true
+                ;;
+              "N" | "n")
+                echo -e "\nINFO: Leaving process of adding IntelliJ Idea Community to desktop browser!"
+                ADD_DESKTOP_BROWSER_SHORTCUT=false
+                ;;
+            esac
+            ;;
+    esac
+
+  if [ $ADD_DESKTOP_BROWSER_SHORTCUT == true ]; then
+    if [ ! -f "/usr/share/applications/intellij.desktop" ]; then
+      obtain_latest_intellij_idea_cm_version
+      IDEA_FOLDER="/usr/bin/$(sudo ls -l /usr/bin/ | grep "idea" | cut -d" " -f17)/"
+
+      if [ "$IDEA_FOLDER" != "" ]; then
+          IntellijDesktopContent=""
+          IntellijDesktopContent+="[Desktop Entry]"
+          IntellijDesktopContent+="\nVersion=$IDEA_COMMUNITY_VERSION"
+          IntellijDesktopContent+="\nType=Application"
+          IntellijDesktopContent+="\nTerminal=false"
+          IntellijDesktopContent+="\nIcon[en_US]=$IDEA_FOLDER/bin/idea.png"
+          IntellijDesktopContent+="\nName[en_US]=IntelliJ Idea Community $IDEA_COMMUNITY_VERSION"
+          IntellijDesktopContent+="\nExec=$IDEA_FOLDER/bin/idea.sh"
+          IntellijDesktopContent+="\nName=IntelliJ Idea Community $IDEA_COMMUNITY_VERSION"
+          IntellijDesktopContent+="\nIcon=/home/rob/.intellij-13/bin/idea.png"
+
+          echo -e "$IntellijDesktopContent" | sudo tee /usr/share/applications/intellij.desktop > /dev/null || { echo -e "\nERROR: There was an error while trying to create the application shortcut!"; exit 1; }
+          sudo chmod 644 /usr/share/applications/intellij.desktop || { echo -e "\nERROR: There was an error while trying to create the application shortcut!"; exit 1; }
+          sudo chown root:root /usr/share/applications/intellij.desktop || { echo -e "\nERROR: There was an error while trying to create the application shortcut!"; exit 1; }
+
+          echo -e "\nINFO: Now if you search for > IntelliJ Idea Community $IDEA_COMMUNITY_VERSION < in your"
+          echo "      desktop browser, you should find the Application there."
+
+          echo -e "\nSUCCESS: IntelliJ Idea Community added to desktop browser successfully!"
+      else
+        echo -e "\nWARN: It looks like you don't have IntelliJ Idea Community installed!"
+      fi
+
+    else
+      echo -e "\nWARN: It looks like you already have IntelliJ Idea Community shortcut added to your desktop browser!"
+    fi
+
+    read -rp "Do you want to pin it to the task bar? [Y/n] " opt
+
+    while [ "$opt" != "" ] && [ "$opt" != "Y" ] && [ "$opt" != "y" ] && [ "$opt" != "N" ] && [ "$opt" != "n" ]; do
+      read -rp "Do you want to pin it to the task bar? [Y/n] " opt
+    done
+
+    case $opt in
+      '' | 'Y' | 'y' )
+        if [ "$(gsettings get org.gnome.shell favorite-apps | grep -w "intellij.desktop")" == "" ]; then
+          gsettings set org.gnome.shell favorite-apps "$(gsettings get org.gnome.shell favorite-apps | sed s/.$//), 'intellij.desktop']" || { echo -e "\nERROR: There was an error while trying to pin the application to the taskbar!"; exit 1; }
+          echo -e "\nSUCCESS: IntelliJ Idea Community successfully pinned to your desktop taskbar!"
+        else
+          echo -e "\nWARN: It looks like you already have IntelliJ Idea Community pinned to your desktop taskbar!"
+        fi
+      ;;
+    esac
+  fi
+}
+
+SCRIPT_HAS_VALIDATE_IF_REQUIREMENTS_INSTALLED=false
+# ------------- AFTER INSTALL ORDER FUNCTIONS -------------
+
+ideaSettingsMenu() {
+  if [ $SCRIPT_HAS_VALIDATE_IF_REQUIREMENTS_INSTALLED == false ]; then
+    install_script_requirements
+  fi
+
+  echo -e "\nINFO: Opening settings menu..."
+  menuStrings=""
+
+  # Modify the menu from here. If you want to add more lines
+  # you can do it by just adding them just like shown.
+  menuStrings+="\n 1) Add IntelliJ Idea Community to Desktop Browser."
+  #menuStrings+="\n 2) Disable IntelliJ Idea New UI."
+  #menuStrings+="\n 3) ..."
+  menuStrings+="\n"
+  menuStrings+="\n Q) Exit.\n"
+
+  echo -e "$menuStrings"
+  read -rp "Input: " opt
+
+  while [ "$opt" != "1" ] && [ "$opt" != "Q" ] && [ "$opt" != "q" ]; do
+    echo -e "$menuStrings"
+    read -rp "Input: " opt
+  done
+
+    case $opt in
+        "1")
+            addProgramShortcutToDesktop
+            ;;
+        "Q" | "q")
+            exit ;;
+    esac
+}
+
+# ---------------------------------------------------------
+
+install_script_requirements() {
+  SCRIPT_HAS_INSTALLED_ALL_REQUIREMENTS=false
+  echo -e "\nINFO: Looking for missing requirements..."
+
+  if ! [ -x "$(command -v wget)" ]; then
+    echo -e "\nWARN: Wget package is not installed and it's required for this script to run."
+    read -rp "Do you want to install it? [Y/n] " opt
+
+    while [ "$opt" != "" ] && [ "$opt" != "Y" ] && [ "$opt" != "y" ] && [ "$opt" != "N" ] && [ "$opt" != "n" ]; do
+      read -rp "Do you want to install it? [Y/n] " opt
+    done
+
+    case $opt in
+        "" | "Y" | "y")
+            echo ""
+            sudo apt install wget || { echo -e "\nERROR: There was an error while trying to install Wget package!"; exit 1; }
+            SCRIPT_HAS_INSTALLED_ALL_REQUIREMENTS=true
+            ;;
+        "N" | "n")
+            echo -e "\nWARN: You must install Wget package in order to run this script."
+            exit ;;
+    esac
+  fi
+
+  if ! [ -x "$(command -v tar)" ]; then
+    echo -e "\nWARN: Tar package is not installed and it's required for this script to run."
+    read -rp "Do you want to install it? [Y/n] " opt
+
+    while [ "$opt" != "" ] && [ "$opt" != "Y" ] && [ "$opt" != "y" ] && [ "$opt" != "N" ] && [ "$opt" != "n" ]; do
+      read -rp "Do you want to install it? [Y/n] " opt
+    done
+
+    case $opt in
+        "" | "Y" | "y")
+            echo ""
+            sudo apt install tar || { echo -e "\nERROR: There was an error while trying to install Tar package!"; exit 1; }
+            SCRIPT_HAS_INSTALLED_ALL_REQUIREMENTS=true
+            ;;
+        "N" | "n")
+            echo -e "\nWARN: You must install Tar package in order to run this script."
+            exit ;;
+    esac
+  fi
+
+  if ! [ -x "$(command -v tee)" ]; then
+    echo -e "\nWARN: Tee package is not installed and it's required for this script to run."
+    read -rp "Do you want to install it? [Y/n] " opt
+
+    while [ "$opt" != "" ] && [ "$opt" != "Y" ] && [ "$opt" != "y" ] && [ "$opt" != "N" ] && [ "$opt" != "n" ]; do
+      read -rp "Do you want to install it? [Y/n] " opt
+    done
+
+    case $opt in
+        "" | "Y" | "y")
+            echo ""
+            sudo apt install tee || { echo -e "\nERROR: There was an error while trying to install Tee package!"; exit 1; }
+            SCRIPT_HAS_INSTALLED_ALL_REQUIREMENTS=true
+            ;;
+        "N" | "n")
+            echo -e "\nWARN: You must install Tee package in order to run this script."
+            exit ;;
+    esac
+  fi
+
+  if ! [ -x "$(command -v java)" ]; then
+    echo -e "\nWARN: Java is not installed and it's required for the program that will be installed to run."
+    read -rp "Do you want to install it? [Y/n] " opt
+
+    while [ "$opt" != "" ] && [ "$opt" != "Y" ] && [ "$opt" != "y" ] && [ "$opt" != "N" ] && [ "$opt" != "n" ]; do
+      read -rp "Do you want to install it? [Y/n] " opt
+    done
+
+    case $opt in
+        "" | "Y" | "y")
+            echo ""
+            sudo apt install openjdk-17-jdk || { echo -e "\nERROR: There was an error while trying to install Java!"; exit 1; }
+            SCRIPT_HAS_INSTALLED_ALL_REQUIREMENTS=true
+            ;;
+        "N" | "n")
+            echo -e "\nWARN: You must install Java in order to run the program being installed."
+            exit ;;
+    esac
+  fi
+
+  SCRIPT_HAS_VALIDATE_IF_REQUIREMENTS_INSTALLED=true
+  if [ $SCRIPT_HAS_INSTALLED_ALL_REQUIREMENTS == true ]; then
+    echo -e "\nSUCCESS: All requirements were installed!"
+  else
+    echo -e "\nINFO: Any requirement was missing!"
+  fi
+}
+
+create_script_paths() {
+  SCRIPT_TMP_PATH=/tmp/IntelliJ_Idea_CM_Installer
+
+  if [ ! -d "$SCRIPT_TMP_PATH" ]; then
+    sudo mkdir "$SCRIPT_TMP_PATH" || { echo -e "\nERROR: There was an error while trying to create the Script Main Path!"; exit 1; }
+  fi
+}
+
+obtain_latest_intellij_idea_cm_version() {
+  echo -e "\nINFO: Obtaining Latest IntelliJ IDEA Community Version..."
+  IDEA_COMMUNITY_VERSION="$(wget -q -O - https://www.jetbrains.com/idea/download/?section=linux | grep -o '"version": "[^"]*"' | awk -F'"' '{print $4}' | cut -d"." -f1).$(wget -q -O - https://www.jetbrains.com/idea/download/?section=linux | grep -oE '_version:"[0-9]+\.[0-9]+\.[0-9]+' | awk -F'"' '{print substr($2, 1, 3)}')"
+  echo -e "\nSUCCESS: Latest IntelliJ IDEA Community Version successfully obtained!"
+}
+
+RELAUNCHED_DOWNLOAD_PROCESS=false
+
+download_intellij_idea_cm_files() {
+  INSTALLATION_FILES_ALREADY_DOWNLOADED=false
+  echo -e "\nINFO: Downloading Latest IntelliJ IDEA Community IDE Installation File...\n"
+
+  if [ -e "$SCRIPT_TMP_PATH"/ideaIC-"$IDEA_COMMUNITY_VERSION".tar.gz ]; then
+    INSTALLATION_FILES_ALREADY_DOWNLOADED=true
+    echo -e "WARN: It looks like the installation file is already downloaded!"
+    read -rp  "Do you want to re-download it? [Y/n] " action
+
+    while [ "$action" != "" ] && [ "$action" != "Y" ] && [ "$action" != "y" ] && [ "$action" != "N" ] && [ "$action" != "n" ]; do
+      read -rp  "Do you want to re-download it? [Y/n] " action
+    done
+
+    echo ""
+    case $action in
+        "" | "Y" | "y")
+            sudo rm "$SCRIPT_TMP_PATH"/ideaIC-"$IDEA_COMMUNITY_VERSION".tar.gz || { echo -e "\nERROR: There was an error while trying to delete IntelliJ IDEA Community IDE Installation File!"; exit 1; }
+            sudo wget -q --show-progress -O "$SCRIPT_TMP_PATH"/ideaIC-"$IDEA_COMMUNITY_VERSION".tar.gz https://download-cdn.jetbrains.com/idea/ideaIC-"$IDEA_COMMUNITY_VERSION".tar.gz || { echo -e "\nERROR: There was an error while trying to download Latest IntelliJ IDEA Community IDE Installation File!"; exit 1; }
+            echo -e "\nSUCCESS: Latest IntelliJ IDEA Community Installation File successfully re-downloaded!"
+            ;;
+        "N" | "n")
+            if [ $RELAUNCHED_DOWNLOAD_PROCESS == false ]; then
+              echo -e "INFO: Continuing to installation with existing IntelliJ IDEA Community IDE Installation File..."
+            else
+              echo -e "WARN: You must re-download the installation file in order to continue running the script!"
+              exit
+            fi
+            ;;
+    esac
+  fi
+
+  if [ $INSTALLATION_FILES_ALREADY_DOWNLOADED == false ]; then
+    sudo wget -q --show-progress -O "$SCRIPT_TMP_PATH"/ideaIC-"$IDEA_COMMUNITY_VERSION".tar.gz https://download-cdn.jetbrains.com/idea/ideaIC-"$IDEA_COMMUNITY_VERSION".tar.gz || { echo -e "\nERROR: There was an error while trying to download Latest IntelliJ IDEA Community IDE Installation File!"; exit 1; }
+    echo -e "\nSUCCESS: Latest IntelliJ IDEA Community Installation File successfully downloaded!"
+  fi
+}
+
+decompress_intellij_idea_cm_files() {
+  INSTALLATION_FILES_CORRUPTED=false
+  echo -e "\nINFO: Checking Installation File..."
+
+  if [ "$(tar -tf "$SCRIPT_TMP_PATH"/ideaIC-"$IDEA_COMMUNITY_VERSION".tar.gz &> /dev/null; echo $?)" != "0" ]; then
+    INSTALLATION_FILES_CORRUPTED=true
+    echo -e "\nERROR: It seems like the installation file is corrupted or similar."
+    read -rp  "Do you want to re-start the download process? [Y/n] " action
+
+    while [ "$action" != "" ] && [ "$action" != "Y" ] && [ "$action" != "y" ] && [ "$action" != "N" ] && [ "$action" != "n" ]; do
+      read -rp  "Do you want to re-start the download process? [Y/n] " action
+    done
+
+    echo ""
+    case $action in
+        "" | "Y" | "y")
+            echo -e "INFO: Re-starting Download of IntelliJ IDEA Community IDE Installation File..."
+            RELAUNCHED_DOWNLOAD_PROCESS=true
+            download_intellij_idea_cm_files ;;
+        "N" | "n")
+            echo -e "WARN: You must re-download the installation file in order to continue running the script!"
+            exit ;;
+    esac
+  fi
+
+  if [ $INSTALLATION_FILES_CORRUPTED == false ] || [ $RELAUNCHED_DOWNLOAD_PROCESS == true ] ; then
+    echo -e "\nINFO: Decompressing IntelliJ IDEA Community IDE Installation Files..."
+    sudo tar -xzf "$SCRIPT_TMP_PATH"/ideaIC-"$IDEA_COMMUNITY_VERSION".tar.gz -C "$SCRIPT_TMP_PATH"/ || { echo -e "\nERROR: There was an error while trying to decompress IntelliJ IDEA Community IDE Installation Files!"; exit 1; }
+    echo -e "\nSUCCESS: Successfully decompressed IntelliJ IDEA Community IDE Installation Files..."
+  fi
+}
+
+install_intellij_idea_cm() {
+  IDEA_FOLDER_NAME=$(tar -tf "$SCRIPT_TMP_PATH"/ideaIC-"$IDEA_COMMUNITY_VERSION".tar.gz | head -n 1 | tail -n 1)
+  IDEA_TMP_FOLDER="$SCRIPT_TMP_PATH"/"$IDEA_FOLDER_NAME"
+
+  if [ ! -d "/usr/bin/$IDEA_FOLDER_NAME" ]; then
+    sudo mv "$IDEA_TMP_FOLDER" "/usr/bin/" || { echo -e "\nERROR: There was an error while trying to move IntelliJ IDEA Files!"; exit 1; }
+    INSTALLATION_MADE_BY_SCRIPT=true
+    echo ""
+  else
+    echo -e "\nINFO: It looks like there is already an IntelliJ IDEA Installation."
+    read -rp  "Do you want to override it? [Y/n] " action
+
+    while [ "$action" != "" ] && [ "$action" != "Y" ] && [ "$action" != "y" ] && [ "$action" != "N" ] && [ "$action" != "n" ]; do
+    read -rp  "Do you want to override it? [Y/n] " action
+    done
+
+    echo ""
+    case $action in
+        "" | "Y" | "y")
+            sudo rm -r "/usr/bin/$IDEA_FOLDER_NAME" || { echo -e "\nERROR: There was an error while trying to remove existing IntelliJ IDEA Installation Files!"; exit 1; }
+            sudo mv "$IDEA_TMP_FOLDER" "/usr/bin/" || { echo -e "\nERROR: There was an error while trying to move IntelliJ IDEA Files!"; exit 1; }
+            INSTALLATION_MADE_BY_SCRIPT=true
+            ;;
+        "N" | "n")
+            echo -e "WARN: The installation will finish after cleaning up because it can't support existing installations!"
+            INSTALLATION_MADE_BY_SCRIPT=false
+            CHANGE_SETTINGS_AFTER_CLEANING_UP=false
+            ;;
+    esac
+  fi
+
+  if [ $INSTALLATION_MADE_BY_SCRIPT == true ]; then
+    echo -e "SUCCESS: IntelliJ Idea Community Edition (v.$IDEA_COMMUNITY_VERSION) successfully installed."
+    read -rp  "Do you want to change some settings? [Y/n] " afterInstallAction
+
+    while [ "$afterInstallAction" != "" ] && [ "$afterInstallAction" != "Y" ] && [ "$afterInstallAction" != "y" ] && [ "$afterInstallAction" != "N" ] && [ "$afterInstallAction" != "n" ]; do
+      read -rp  "Do you want to change some settings? [Y/n] " afterInstallAction
+    done
+
+    echo ""
+    case $afterInstallAction in
+        "" | "Y" | "y")
+            echo -e "INFO: After cleaning up, the configuration setup will be launched!"
+            CHANGE_SETTINGS_AFTER_CLEANING_UP=true
+            ;;
+        "N" | "n")
+            echo -e "INFO: No changes will be performed to the IntelliJ IDEA installation. The script will finish after cleaning up!"
+            CHANGE_SETTINGS_AFTER_CLEANING_UP=false
+            ;;
+    esac
+  fi
+}
+
+remove_script_paths() {
+  echo -e "\nINFO: Start cleaning up Script Path..."
+  sudo rm -r "$SCRIPT_TMP_PATH" || { echo -e "\nERROR: There was an error while trying to delete Script Path!"; exit 1; }
+  echo -e "\nSUCCESS: Successfully cleared up Script Path!"
+
+  if [ $CHANGE_SETTINGS_AFTER_CLEANING_UP == false ]; then
+    echo -e "\nINFO: Stopping Script!"
+  else
+    ideaSettingsMenu
+  fi
+}
+
+# ------------- MAIN RUNNING ORDER SCRIPT -------------
+
+mainMenu() {
+  echo -e "\nINFO: Opening Script menu..."
+  menuStrings=""
+
+  # Modify the menu from here. If you want to add more lines
+  # you can do it by just adding them just like shown.
+  menuStrings+="\n 1) Install IntelliJ Idea Community."
+  menuStrings+="\n 2) Open Settings Menu."
+  #menuStrings+="\n 3) ..."
+  menuStrings+="\n"
+  menuStrings+="\n Q) Exit.\n"
+
+  echo -e "$menuStrings"
+  read -rp "Input: " opt
+
+  while [ "$opt" != "1" ] && [ "$opt" != "2" ] && [ "$opt" != "Q" ] && [ "$opt" != "q" ]; do
+    echo -e "$menuStrings"
+    read -rp "Input: " opt
+  done
+
+    case $opt in
+        "1")
+            install_script_requirements
+            create_script_paths
+            obtain_latest_intellij_idea_cm_version
+            download_intellij_idea_cm_files
+            decompress_intellij_idea_cm_files
+            install_intellij_idea_cm
+            remove_script_paths
+            ;;
+        "2")
+            ideaSettingsMenu
+            ;;
+        "Q" | "q")
+            exit ;;
+    esac
+}
+
+# -----------------------------------------------------
+mainMenu
+        </pre>
+    </body>
+</html>
