@@ -49,7 +49,7 @@ addProgramShortcutToDesktop() {
           IntellijDesktopContent+="\nName[en_US]=IntelliJ Idea Community $IDEA_COMMUNITY_VERSION"
           IntellijDesktopContent+="\nExec=$IDEA_FOLDER/bin/idea.sh"
           IntellijDesktopContent+="\nName=IntelliJ Idea Community $IDEA_COMMUNITY_VERSION"
-          IntellijDesktopContent+="\nIcon=/home/rob/.intellij-13/bin/idea.png"
+          IntellijDesktopContent+="\nIcon=$IDEA_FOLDER/bin/idea.png"
 
           echo -e "$IntellijDesktopContent" | sudo tee /usr/share/applications/intellij.desktop > /dev/null || { echo -e "\nERROR: There was an error while trying to create the application shortcut!"; exit 1; }
           sudo chmod 644 /usr/share/applications/intellij.desktop || { echo -e "\nERROR: There was an error while trying to create the application shortcut!"; exit 1; }
