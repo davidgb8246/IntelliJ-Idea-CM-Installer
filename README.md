@@ -15,7 +15,8 @@ List of supported installation setups for IntelliJ and Options Menu (installatio
 
 | Operating System | Version | IntelliJ Idea | Configuration Menu |
 | :---             | :---:   |     :---:     |       :---:        |
-| Ubuntu           | 23.04   |      ✅      |         ✅         |
+| Ubuntu           | 22.04   |      ✅      |         🔴         |
+|                  | 23.04   |      ✅      |         ✅         |
 | Lubuntu          | 22.04   |      ✅      |         🔴         |
 
 
